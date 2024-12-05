@@ -4,20 +4,35 @@ const User = require("../models/user");
 
 const registerPort = async (req, res) => {
   try {
-    const { portId, max_berth, timeTakenPerContent, cost_per_time } = req.body;
+    const { portId, max_berth, timeTakenPerContent, cost_per_time, country  } = req.body;
     const ownerId = req.id;
     if (
       !portId ||
       !ownerId ||
       !max_berth ||
       !timeTakenPerContent ||
-      !cost_per_time
+      !cost_per_time ||
+      !country
     ) {
       return res.status(401).res.json({
         message: "something is missing",
         successes: false,
       });
     }
+
+    try {
+      const response = await axios.get(
+        `https://restcountries.com/v3.1/name/${country}?fullText=true`
+      );
+    } catch (error) {
+      if (error.response) {
+        return res.status(400).json({
+          message: "Invalid country name. Please provide a valid country.",
+          success: false,
+        });
+      }
+    }
+    
     const portExist = await Port.findOne({ portId });
     if (portExist) {
       return res.status(401).json({
@@ -50,15 +65,17 @@ const registerPort = async (req, res) => {
       berths: berthIds, // Array of berth ObjectIds
       timeTakenPerContent,
       cost_per_time,
+      country,
     });
 
-    const user = await User.findById(ownerId);
-    if (user) {
-      user.ports.push(port._id);
-      await user.save();
-    }
+    // const user = await User.findById(ownerId);
+    // if (user) {
+    //   user.ports.push(port.portId);
+    //   await user.save();
+    // }
     return res.status(201).json({
-      message: "port added successfully successfully",
+      port,
+      message: "port added successfully ",
       success: true,
     });
   } catch (error) {
@@ -77,7 +94,7 @@ const allUserPort = async (req,res)=>{
       })
     }
     return res.status(200).json({
-      ports:ships,
+      ports:ports,
       success:true
     })
     
@@ -108,17 +125,17 @@ const getPortDetails = async (req, res) => {
   }
 };
 
-const getPortList = async (req, res) => {
+const getPortListCountrywise = async (req, res) => {
   try {
-    const ports = await Port.find();
+    const country = req.params.id
+    const ports = await Port.find({country});
     if (!ports) {
       return res.status(400).json({
         message: "no port found",
         success: false,
       });
     }
-    return res.status(400).json({
-      message: "no port found",
+    return res.status(200).json({
       ports,
       success: true,
     });
@@ -181,4 +198,4 @@ const editPort = async (req, res) => {
   }
 };
 
-module.exports = { registerPort, getPortDetails, getPortList, editPort,allUserPort };
+module.exports = { registerPort, getPortDetails, editPort,allUserPort,getPortListCountrywise };

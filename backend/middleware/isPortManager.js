@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-const isShipOwner = (req, res, next) => {
+const isPortManager = (req, res, next) => {
   try {
     const token = req.cookies.token;
     if (!token) {
@@ -29,4 +29,4 @@ const isShipOwner = (req, res, next) => {
   }
 };
 
-module.exports = isShipOwner;
+module.exports = isPortManager;

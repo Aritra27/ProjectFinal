@@ -10,9 +10,13 @@ const createSchedule = async (req, res) => {
       arrival_time,
       departure_time,
       berthId,
+      portOwnerId
     } = req.body;
 
+    console.log(req.body);
+
     if (
+      !portOwnerId||
       !portId ||
       !shipId ||
       !content_type ||
@@ -30,11 +34,15 @@ const createSchedule = async (req, res) => {
       // Get the current time
       const currentTime = new Date();
 
-      // Calculate the time difference in hours
-      const timeDiffInHours = (currentTime - arrivalTime) / (1000 * 60 * 60);
+      // Get the current time
+      const parsedArrivalTime = new Date(arrivalTime);
 
-      // Calculate the base priority
-      let basePriority = timeDiffInHours * 0.1;
+      // Calculate the time difference in hours
+      const timeDiffInHours =
+        (parsedArrivalTime-currentTime ) / (1000 * 60 * 60);
+
+      // Ensure valid base priority
+      let basePriority = timeDiffInHours * 0.1 || 0;
 
       // Adjust for content type
       if (contentType === "food") {
@@ -48,6 +56,8 @@ const createSchedule = async (req, res) => {
     const priority = calculatePriority(arrival_time, content_type);
 
     const schedule = await Schedule.create({
+      shipOwnerId:req.id,  
+      portOwnerId,
       portId,
       shipId,
       content_type,
@@ -67,10 +77,10 @@ const createSchedule = async (req, res) => {
 };
 
 const freeSlots = async (req, res) => {
-  const { startDate, stayDuration, portId } = req.body;
+  const { expectedArrival_time, stayDuration, portId } = req.body;
   const availableSlots = new Map(); // Use a Map to keep unique slots
 
-  const startDateObj = new Date(startDate);
+  const startDateObj = new Date(expectedArrival_time);
 
   try {
     console.log("checkpoint 1");
@@ -149,7 +159,7 @@ const freeSlots = async (req, res) => {
     console.log(sortedSlots);
 
     // Return the top 5 available slots
-    return res.json(sortedSlots.slice(0, 5));
+    return res.json({ success: "true", slots: sortedSlots.slice(0, 5) });
   } catch (err) {
     console.error("Error occurred:", err);
     return res
@@ -158,4 +168,43 @@ const freeSlots = async (req, res) => {
   }
 };
 
-module.exports = { freeSlots,createSchedule };
+const portSchedules = async(req,res)=>{
+  const portOwnerId = req.id;
+  try {
+    const schedules = await Schedule.find({portOwnerId});
+    if(!schedules){
+      return res.status(200).json({
+        success:true,
+        schedules:[]
+      })
+    }
+    return res.status(200).json({
+      success:true,
+      schedules
+    })
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+const shipSchedules = async(req,res)=>{
+  const shipOwnerId = req.id;
+  try {
+    const schedules = await Schedule.find({shipOwnerId});
+    if(!schedules){
+      return res.status(400).json({
+        success:false,
+      })
+    }
+    return res.status(200).json({
+      success:true,
+      schedules
+    })
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+module.exports = { freeSlots, createSchedule,portSchedules,shipSchedules};

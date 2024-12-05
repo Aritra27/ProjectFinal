@@ -15,6 +15,7 @@ const port_router = require("./routes/port.route");
 const schedule_router = require("./routes/schedule.route");
 //database export
 const db = require("./utils/db");
+const morgan = require("morgan");
 
 
 const corsOption={
@@ -22,6 +23,8 @@ const corsOption={
   credentials: true  
 }
 app.use(cors(corsOption));
+
+app.use(morgan('dev'));
 
 //all middleware
 

@@ -10,7 +10,7 @@ import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 
-const S_profile = () => {
+const P_profile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { userinfo } = useSelector(store => store.user)
@@ -96,4 +96,4 @@ const S_profile = () => {
   )
 }
 
-export default S_profile
+export default P_profile

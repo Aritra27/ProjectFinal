@@ -138,11 +138,15 @@ const editProfile = async(req,res)=>{
         message: "user is not authenticated",
       });
     }
-    user.name=name || user.name
-    user.email = email || user.email
-    return res.status(401).json({
+    user.name=name
+    user.email = email
+
+    user.save();
+
+    return res.status(200).json({
       user,
       success: true,
+      message:"user data edited successfully"
     });
   } catch (error) {
     console.log(error);
@@ -193,4 +197,4 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { register, login, logout, getProfile, deleteUser, };
+module.exports = { register, login, logout, getProfile, deleteUser,editProfile };

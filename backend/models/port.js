@@ -10,6 +10,7 @@ const port_schema= new mongoose.Schema({
         material: { type: Number, default: 0 }
     },
     cost_per_time:{type:Number, require:true},
+    country:{type:String, require:true },
 })
  
 const Port = mongoose.model("Port",port_schema);

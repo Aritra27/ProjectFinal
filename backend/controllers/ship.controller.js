@@ -7,7 +7,7 @@ const registerShip = async (req, res) => {
     const { shipName, shipType, shipReg, country } = req.body;
     const ownerId = req.id;
     if (!shipName || !shipType || !shipReg || !country) {
-      return res.status(401).res.json({
+      return res.status(401).json({
         message: "something is missing",
         successes: false,
       });
@@ -39,34 +39,35 @@ const registerShip = async (req, res) => {
       shipReg,
       country,
     });
-    const user = await User.findById(ownerId);
-    if (user) {
-      user.ships.push(ship._id);
-      await user.save();
-    }
+    // const user = await User.findById(ownerId);
+    // if (user) {
+    //   user.ships.push(ship._id);
+    //   await user.save();
+    // }
     return res.status(201).json({
       message: "ship added successfully successfully",
       success: true,
+      ship,
     });
   } catch (error) {
     console.log(error);
   }
 };
-const allUserShip = async (req,res)=>{
+const allUserShip = async (req, res) => {
   try {
     const ownerId = req.id;
     const ships = await Ship.find({ ownerId });
-    if(!ships.length){
+    if (!ships.length) {
       return res.status(200).json({
-        ships:[],
-        success:true
-      })
+        ships: [],
+        success: true,
+      });
     }
+    console.log(ships)
     return res.status(200).json({
-      ships:ships,
-      success:true
-    })
-    
+      ships: ships,
+      success: true,
+    });
   } catch (error) {
     console.log(error);
   }
@@ -97,13 +98,13 @@ const deleteShip = async (req, res) => {
     const ownerId = req.id;
     const shipId = req.params.id;
     const shipExist = await Ship.findById(shipId);
-    if(!shipExist){
-        return res.status(401).json({
-            message: "ship not exist",
-            success:false,
-          });
+    if (!shipExist) {
+      return res.status(401).json({
+        message: "ship not exist",
+        success: false,
+      });
     }
-    console.log(shipExist.ownerId ,ownerId)
+    console.log(shipExist.ownerId, ownerId);
     if (shipExist.ownerId.toString() === ownerId) {
       const user = await User.findById(ownerId);
       if (user) {
@@ -116,9 +117,9 @@ const deleteShip = async (req, res) => {
         });
       } else {
         return res.status(401).json({
-            message: "error to fetch user",
-            success: false,
-          });
+          message: "error to fetch user",
+          success: false,
+        });
       }
     } else {
       return res.status(404).json({
@@ -130,4 +131,4 @@ const deleteShip = async (req, res) => {
     console.log(error);
   }
 };
-module.exports = { registerShip, getShipDetails,deleteShip,allUserShip };
+module.exports = { registerShip, getShipDetails, deleteShip, allUserShip };

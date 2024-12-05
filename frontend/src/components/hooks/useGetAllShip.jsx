@@ -9,7 +9,6 @@ const useGetAllShip = () => {
         const fetchAllShips = async () => {
             try {
                 const res =await axios.get(" http://localhost:8000/api/v1/ship/getAllShip", { withCredentials: true })
-                console.log(res);
                 if (res.data.success) {
                     dispatch(setShipinfo(res.data.ships))
                 }

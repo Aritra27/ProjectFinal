@@ -1,6 +1,8 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import userSlice from "./userSlice.js";
 import shipSlice from "./shipSlice.js";
+import portSlice from "./portSlice.js";
+import scheduleSlice from "./scheduleSlice.js";
 import {
   persistReducer,
   FLUSH,
@@ -20,6 +22,8 @@ const persistConfig = {
 const rootReducer = combineReducers({
   user: userSlice,
   ship: shipSlice,
+  port: portSlice,
+  schedule: scheduleSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

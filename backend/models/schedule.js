@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 
 const schedule_schema = new mongoose.Schema({
-  portId: { type: mongoose.Schema.ObjectId, ref: "Port" },
+  shipOwnerId:{type: mongoose.Schema.ObjectId, ref: "User" },
+  portOwnerId:{type: mongoose.Schema.ObjectId, ref: "User" },
+  portId: { type: String,required:true},
   shipId: { type: mongoose.Schema.ObjectId, ref: "Ship" },
-  content_type: { type: String, enum: ["food", "Material"], required: true },
+  content_type: { type: String, enum: ["food", "material"], required: true },
   arrival_time: { type: Date, required: true },
   priority: { type: Number, default: 0 },
   departure_time: { type: Date, required: true },  // Changed from dock_time
