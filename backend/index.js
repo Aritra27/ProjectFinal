@@ -16,6 +16,7 @@ const schedule_router = require("./routes/schedule.route");
 //database export
 const db = require("./utils/db");
 const morgan = require("morgan");
+const errorMiddleware = require("./middleware/errorMiddleware");
 
 
 const corsOption={
@@ -33,6 +34,8 @@ app.use("/api/v1/user",user_router)
 app.use("/api/v1/ship",ship_router)
 app.use("/api/v1/port",port_router)
 app.use("/api/v1/schedule",schedule_router)
+
+app.use(errorMiddleware)
 
 const PORT = process.env.PORT;
 
