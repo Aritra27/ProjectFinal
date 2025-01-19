@@ -19,7 +19,7 @@ const P_PortRegister = ({ open, setOpen }) => {
 
     // Fetch countries when the component mounts
     useEffect(() => {
-        axios.get('https://restcountries.com/v3.1/all')
+        axios.get('https://restcountries.com/v3.1/all?fields=name')
             .then(response => {
                 const countryList = response.data;
                 countryList.sort((a, b) => a.name.common.localeCompare(b.name.common));

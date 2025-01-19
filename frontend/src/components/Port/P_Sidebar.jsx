@@ -4,10 +4,10 @@ import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { setUserinfo } from '../redux/userSlice'
+import { resetUserState} from '../redux/userSlice'
 import P_PortRegister from './P_PortRegister'
-import { setPortinfo, setSelectedPort } from '../redux/portSlice'
-import { setScheduleInfo, setSelectedSchedule } from '../redux/scheduleSlice'
+import { resetPortState} from '../redux/portSlice'
+import { resetScheduleState} from '../redux/scheduleSlice'
 
 const sidebarItems = [
     { icon: <Home />, text: "Home" },
@@ -27,13 +27,11 @@ const P_Sidebar = () => {
         const res = await axios.get('http://localhost:8000/api/v1/user/logout', { withCredentials: true });
         if (res.data.success) {
             toast.success(res.data.message);
-            dispatch(setUserinfo(""));
-            dispatch(setSelectedPort(""));
-            dispatch(setPortinfo([]));
-            dispatch(setScheduleInfo([]));
-            dispatch(setSelectedSchedule(''));
+            dispatch(resetUserState());
+            dispatch(resetPortState());
+            dispatch(resetScheduleState());
+            navigate("/")
         }
-        navigate("/")
     }
     const sidebarHandler = (textType) => {
         if (textType == "logout") logoutHandler();

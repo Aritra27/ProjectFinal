@@ -4,11 +4,12 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { setUserinfo } from '../redux/userSlice';
+import { resetUserState, setUserinfo } from '../redux/userSlice';
 import S_ShipRegister from './S_ShipRegister';
-import { setSelectedShip, setShipinfo } from '../redux/shipSlice';
+import { resetShipState, setSelectedShip, setShipinfo } from '../redux/shipSlice';
 import { setPortinfo } from '../redux/portSlice';
 import S_Schedule from './S_Schedule';
+import { resetScheduleState } from '../redux/scheduleSlice';
 
 const sidebarItems = [
   { icon: <Home />, text: 'Home' },
@@ -31,10 +32,9 @@ const S_Sidebar = () => {
     const res = await axios.get('http://localhost:8000/api/v1/user/logout', { withCredentials: true });
     if (res.data.success) {
       toast.success(res.data.message);
-      dispatch(setUserinfo(''));
-      dispatch(setShipinfo([]));
-      dispatch(setSelectedShip(''));
-      dispatch(setPortinfo([]));
+      dispatch(resetShipState());
+      dispatch(resetUserState());
+      dispatch(resetScheduleState());
       navigate('/');
     }
   };

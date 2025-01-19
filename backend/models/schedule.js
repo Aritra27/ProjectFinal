@@ -10,6 +10,7 @@ const schedule_schema = new mongoose.Schema({
   priority: { type: Number, default: 0 },
   departure_time: { type: Date, required: true },  // Changed from dock_time
   berthId: { type: mongoose.Schema.ObjectId, ref: "Berth" },
+  state: { type: String, enum: ["scheduled", "arrived","docked","leave","cancel"], default:"scheduled" }
 });
 
 const Schedule = mongoose.model("Schedule", schedule_schema);
