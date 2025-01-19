@@ -1,11 +1,15 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { setSelectedSchedule } from '../redux/scheduleSlice';
+import { Await, useNavigate } from 'react-router-dom';
+import { setSelectedSchedule, updateScheduleState } from '../redux/scheduleSlice';
 import { Button } from '../ui/button';
+import axios from 'axios';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 const P_Schedule = ({ schedule }) => {
   const [click, setClick] = useState(false);
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const arrivalDate = new Date(schedule?.arrival_time);
@@ -33,10 +37,38 @@ const P_Schedule = ({ schedule }) => {
     dispatch(setSelectedSchedule(schedule));
     navigate("/porthome/portScheduleDetails")
   }
-  const handleButtonClick = (e) => {
+  const scheduleButtonClick = async (e) => {
     e.stopPropagation(); // Prevent event bubblings
-    setClick(true);
+    setLoading(true);
 
+    try {
+      const res = await axios.put(`http://localhost:8000/api/v1/schedule/Arrive/${schedule._id}`);
+      console.log(res)
+      dispatch(updateScheduleState({ id: schedule._id, state: "arrived" }));
+      toast.success(res.data.message);
+    } catch (error) {
+      console.error("Error updating schedule state:", error);
+      toast.error("Failed to update schedule state.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const ArriveButtonClick = async (e) => {
+    e.stopPropagation(); // Prevent event bubblings
+    setLoading(true);
+
+    try {
+      const res = await axios.put(`http://localhost:8000/api/v1/schedule/Docked/${schedule._id}`);
+      console.log(res)
+      dispatch(updateScheduleState({ id: schedule._id, state: "docked" }));
+      toast.success(res.data.message);
+    } catch (error) {
+      console.error("Error updating schedule state:", error);
+      toast.error("Failed to update schedule state.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,16 +86,21 @@ const P_Schedule = ({ schedule }) => {
           <span>Arrival Time: {formattedArrivalTime} hrs</span>
           <span>Departure Time: {formattedDepartureTime} hrs</span>
         </div>
-        <div className="flex flex-col text-sm font-medium text-blue-600">
-          <Button onClick={handleButtonClick}>arrive</Button>
-        </div>
+        {schedule.state == "scheduled" &&
+          <div className="flex flex-col text-sm font-medium text-blue-600">
+            <Button onClick={scheduleButtonClick} disabled={loading}>
+              {loading ? <Loader2 className='animate-spin' /> : "Arrive"}
+            </Button>
+          </div>
+        }
+        {schedule.state == "arrived" &&
+          <div className="flex flex-col text-sm font-medium text-blue-600">
+            <Button onClick={ArriveButtonClick} disabled={loading}>
+              {loading ? <Loader2 className='animate-spin' /> : "Dock"}
+            </Button>
+          </div>
+        }
       </div>
-      {click &&
-        <div>
-          <h1>you are ready to go</h1>
-        </div>
-      }
-
     </div>
   );
 }

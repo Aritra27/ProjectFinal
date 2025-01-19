@@ -16,6 +16,13 @@ const scheduleSlice = createSlice({
     setSelectedSchedule: (state, action) => {
       state.selectedSchedule = action.payload;
     },
+    updateScheduleState: (state, action) => {
+      const { id, state: newState } = action.payload;
+      const schedule = state.scheduleInfo.find((sch) => sch._id === id);
+      if (schedule) {
+        schedule.state = newState; // Update the state of the specific schedule
+      }
+    },
     setLoading: (state, action) => {
       state.loading = action.payload; // Set loading state
     },
@@ -28,5 +35,6 @@ export const {
   setSelectedSchedule,
   setLoading,
   resetScheduleState,
+  updateScheduleState
 } = scheduleSlice.actions;
 export default scheduleSlice.reducer;

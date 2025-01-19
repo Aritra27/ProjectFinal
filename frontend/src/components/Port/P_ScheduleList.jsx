@@ -32,7 +32,7 @@ const P_ScheduleList = () => {
         ) : (
           <>
             {/* Arriving schedules */}
-            <h2 className="text-xl font-semibold py-4">Arriving</h2>
+            <h2 className="text-xl font-semibold py-4">Arrive</h2>
             {arrivingSchedules?.map((schedule, index) => (
               <P_Schedule key={`arrive-${index}`} schedule={schedule} />
             ))}

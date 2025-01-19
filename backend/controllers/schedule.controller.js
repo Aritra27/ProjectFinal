@@ -206,5 +206,70 @@ const shipSchedules = async(req,res)=>{
     console.log(error)
   }
 }
+const arriveState = async (req, res) => {
+  const { id } = req.params;
 
-module.exports = { freeSlots, createSchedule,portSchedules,shipSchedules};
+  try {
+    // Find the schedule by ID
+    const schedule = await Schedule.findById(id);
+
+    if (!schedule) {
+      return res.status(404).json({
+        success: false,
+        message: "Failed to find schedule",
+      });
+    }
+
+    // Update the state to "arrived"
+    schedule.state = "arrived";
+    await schedule.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Schedule state successfully updated to 'arrived'",
+      schedule,
+    });
+  } catch (error) {
+    console.error("Error updating schedule state:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while updating the schedule state",
+      error: error.message,
+    });
+  }
+};
+
+const dockedState = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Find the schedule by ID
+    const schedule = await Schedule.findById(id);
+
+    if (!schedule) {
+      return res.status(404).json({
+        success: false,
+        message: "Failed to find schedule",
+      });
+    }
+
+    // Update the state to "arrived"
+    schedule.state = "docked";
+    await schedule.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Schedule state successfully updated to 'docked'",
+      schedule,
+    });
+  } catch (error) {
+    console.error("Error updating schedule state:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while updating the schedule state",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = { freeSlots, createSchedule,portSchedules,shipSchedules,arriveState,dockedState};
