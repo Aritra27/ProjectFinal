@@ -3,6 +3,8 @@ import userSlice from "./userSlice.js";
 import shipSlice from "./shipSlice.js";
 import portSlice from "./portSlice.js";
 import scheduleSlice from "./scheduleSlice.js";
+import socketSlice from "./socketSlice.js";
+import chatSlice from "./chatSlice.js";
 import {
   persistReducer,
   FLUSH,
@@ -24,6 +26,8 @@ const rootReducer = combineReducers({
   ship: shipSlice,
   port: portSlice,
   schedule: scheduleSlice,
+  socketio: socketSlice,
+  chat:chatSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

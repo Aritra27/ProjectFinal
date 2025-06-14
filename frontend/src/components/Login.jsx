@@ -48,8 +48,8 @@ const Login = () => {
         <div className='flex items-center w-screen h-screen justify-center'>
             <form  onSubmit={handleSubmit} className='shadow-lg  flex flex-col gap-5 p-8'>
                 <div className='my-4'>
-                    <h1 className='text-center font-bold text-xl'>LOGO</h1>
-                    <p className='text-sm text-center'>Login to see photos and video for your friend</p>
+                    <h1 className='text-center font-bold text-xl'>CargoConnect</h1>
+                    <p className='text-sm text-center'>Login to get into all the application features </p>
                 </div>
                 <div>
                     <span className='font-medium'>Email</span>

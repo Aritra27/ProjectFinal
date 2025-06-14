@@ -41,12 +41,12 @@ const P_PortScheduleDetails = () => {
             <div className="relative">
               <img
                 src={portImage}
-                alt={`${selectedSchedule?.shipId}`}
+                alt={`${selectedSchedule?.shipId.shipName}`}
                 className="w-full h-64 object-cover"
               />
               {/* Overlay Name */}
               <div className="absolute bottom-0 left-0 bg-black bg-opacity-50 text-white w-full text-center p-3">
-                <CardTitle className="text-xl font-bold">{selectedSchedule?.shipId}</CardTitle>
+                <CardTitle className="text-xl font-bold">{selectedSchedule?.shipId.shipName}</CardTitle>
               </div>
             </div>
             {/* Content Section */}
@@ -55,7 +55,7 @@ const P_PortScheduleDetails = () => {
               <div className="flex-1 space-y-4 text-gray-800">
                 <div className="flex justify-between">
                   <span className="font-semibold">Owner ID:</span>
-                  <span>{selectedSchedule?.shipOwnerId || "N/A"}</span>
+                  <span>{selectedSchedule?.shipOwnerId.name || "N/A"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold">Priority:</span>
@@ -75,7 +75,7 @@ const P_PortScheduleDetails = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold">Berth Id</span>
-                  <span>{selectedSchedule?.berthId || "N/A"}</span>
+                  <span>{selectedSchedule?.berthId.name || "N/A"}</span>
                 </div>
                 <div className="flex  items-end justify-between space-y-4">
                 <Button

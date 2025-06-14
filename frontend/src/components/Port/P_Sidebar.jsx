@@ -8,6 +8,8 @@ import { resetUserState} from '../redux/userSlice'
 import P_PortRegister from './P_PortRegister'
 import { resetPortState} from '../redux/portSlice'
 import { resetScheduleState} from '../redux/scheduleSlice'
+import { resetChatState } from '../redux/chatSlice'
+import { resetSocketState } from '../redux/socketSlice'
 
 const sidebarItems = [
     { icon: <Home />, text: "Home" },
@@ -30,6 +32,8 @@ const P_Sidebar = () => {
             dispatch(resetUserState());
             dispatch(resetPortState());
             dispatch(resetScheduleState());
+            dispatch(resetChatState());
+            dispatch(resetSocketState());
             navigate("/")
         }
     }
@@ -60,7 +64,7 @@ const P_Sidebar = () => {
                 </div>
                 <P_PortRegister open={portRegOpen} setOpen={setPortRegOpen} />
             </div>
-            <div className='fixed bottom-10 right-10'>
+            <div className='fixed bottom-10 right-10'onClick={() => navigate('/chat')}>
                 <MessageCircleCode className=' bg-gray-200 rounded-full p-2 h-10 w-10' />
             </div>
         </>

@@ -70,15 +70,14 @@ const P_Schedule = ({ schedule }) => {
       setLoading(false);
     }
   };
-
   return (
     <div className="bg-white shadow-lg rounded-lg p-4 mb-4 flex  flex-col   hover:bg-gray-600 cursor-pointer" onClick={() => ScheduleDetailsManagement(schedule)}>
       {/* Left Section */}
       <div className='flex justify-between items-center'>
         <div className="flex flex-col">
-          <span className="font-bold text-lg">Ship Id: {schedule?.shipId}</span>
+          <span className="font-bold text-lg">Ship Id: {schedule?.shipId.shipName}</span>
           <span className="text-sm text-gray-500">Priority: {schedule?.priority}</span>
-          <span className="text-sm text-gray-500">Berth Id: {schedule?.berthId}</span>
+          <span className="text-sm text-gray-500">Berth Id: {schedule?.berthId.name}</span>
         </div>
 
         {/* Right Section */}
@@ -94,9 +93,23 @@ const P_Schedule = ({ schedule }) => {
           </div>
         }
         {schedule.state == "arrived" &&
-          <div className="flex flex-col text-sm font-medium text-blue-600">
+          <div className="flex  flex-col text-sm font-medium justify-evenly text-blue-600 ">
             <Button onClick={ArriveButtonClick} disabled={loading}>
               {loading ? <Loader2 className='animate-spin' /> : "Dock"}
+            </Button>
+          </div>
+        }
+        {(schedule.state == "scheduled" || schedule.state == "arrived") &&
+          <div className="flex flex-col text-sm font-medium text-blue-600">
+            <Button onClick={ArriveButtonClick} disabled={loading}>
+              {loading ? <Loader2 className='animate-spin' /> : "cancel"}
+            </Button>
+          </div>
+        }
+        {schedule.state == "docked" &&
+          <div className="flex flex-col text-sm font-medium text-blue-600">
+            <Button onClick={ArriveButtonClick} disabled={loading}>
+              {loading ? <Loader2 className='animate-spin' /> : "leave"}
             </Button>
           </div>
         }

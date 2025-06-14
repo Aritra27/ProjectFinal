@@ -21,7 +21,7 @@ const S_Schedule = ({ open, setOpen }) => {
   const [selectedSlot, setSelectedSlot] = useState('');
   const { shipinfo } = useSelector(store => store.ship)
   const [input, setInput] = useState({
-    portOwnerId:'',
+    portOwnerId: '',
     country: '',
     portId: '',
     shipId: '',
@@ -36,7 +36,7 @@ const S_Schedule = ({ open, setOpen }) => {
 
   const resetForm = () => {
     setInput({
-      portOwnerId:'',
+      portOwnerId: '',
       country: '',
       portId: '',
       shipId: '',
@@ -69,7 +69,7 @@ const S_Schedule = ({ open, setOpen }) => {
   useEffect(() => {
     if (input.quantity && input.content_type && input.portId) {
       const selectedPort = ports.find((port) => port.portId === input.portId);
-      const updatedInput={...input,portOwnerId:selectedPort.ownerId}
+      const updatedInput = { ...input, portOwnerId: selectedPort.ownerId }
       setInput(updatedInput)
       const timePerUnit = selectedPort?.timeTakenPerContent[input.content_type];
       const calculatedTime = timePerUnit ? input.quantity * timePerUnit : "error";
@@ -80,6 +80,12 @@ const S_Schedule = ({ open, setOpen }) => {
   useEffect(() => {
     const { expectedArrival_time, stayDuration, portId } = input;
     if (expectedArrival_time && stayDuration && portId) {
+
+      if (requiredTime && stayDuration < requiredTime) {
+        toast.error("Stay duration cannot exceed the required time.");
+        return;
+      }
+    }
       const fetchData = async () => {
         try {
           const res = await axios.post(
@@ -105,7 +111,6 @@ const S_Schedule = ({ open, setOpen }) => {
       };
 
       fetchData();
-    }
   }, [input.expectedArrival_time, input.stayDuration, input.portId]);
 
   const fetchPorts = async (country) => {
@@ -130,7 +135,7 @@ const S_Schedule = ({ open, setOpen }) => {
     const stayDuration = parseFloat(input.stayDuration);
 
     // Calculate departure_time dynamically
-    const departureTime =  new Date(arrivalTime.getTime() + stayDuration * 60 * 60 * 1000);
+    const departureTime = new Date(arrivalTime.getTime() + stayDuration * 60 * 60 * 1000);
 
     // Validate Arrival Time within selected slot
     if (arrivalTime < new Date(selectedSlot.availableFrom)) {
@@ -148,7 +153,7 @@ const S_Schedule = ({ open, setOpen }) => {
       toast.error("Departure time must be within the selected slot.");
       return;
     }
-    const updatedInput = { ...input, departure_time: departureTime.toISOString(),arrival_time:arrivalTime.toISOString() };
+    const updatedInput = { ...input, departure_time: departureTime.toISOString(), arrival_time: arrivalTime.toISOString() };
     try {
       const res = await axios.post("http://localhost:8000/api/v1/schedule/createSchedule", updatedInput, {
         headers: {
@@ -281,6 +286,9 @@ const S_Schedule = ({ open, setOpen }) => {
                         onChange={(e) => onChangeHandler(e.target.id, e.target.value)}
                         disabled={!input.country}
                       />
+                      {input.stayDuration < requiredTime && (
+                        <p className="text-red-500 text-sm">Stay duration cannot less than {requiredTime} hours.</p>
+                      )}
                     </div>
                     <div className="flex flex-col space-y-1.5">
                       <Label htmlFor="stayDuration">Stay Duration</Label>
@@ -310,7 +318,7 @@ const S_Schedule = ({ open, setOpen }) => {
                                     minute: '2-digit',
                                   }).format(new Date(slot.availableFrom))}{' '}
                                   -{' '}
-                                  {slot.availableUntil === 'rest'
+                                  {slot.availableUntil === 'rest' || slot.availableUntil === 'indefinite'
                                     ? 'Available indefinitely'
                                     : new Intl.DateTimeFormat('en-US', {
                                       year: 'numeric',
@@ -337,7 +345,7 @@ const S_Schedule = ({ open, setOpen }) => {
                       />
                     </div>
                     <div className="flex flex-col space-y-1.5">
-                      <Button type="submit" disabled={!input.arrival_time}>Submit</Button>
+                      <Button type="submit" disabled={!input.arrival_time && input.stayDuration < requiredTime}>Submit</Button>
                     </div>
                   </div>
                 </form>

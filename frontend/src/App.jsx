@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Signup from './components/Signup'
 import Login from './components/Login'
+import ChatPage from './components/chat/ChatPage'
 import ShipLayout from './components/ShipLayout'
 import S_Home from './components/Ship/S_Home'
 import PortLayout from './components/PortLayout'
@@ -15,37 +16,43 @@ import P_ScheduleList from './components/Port/P_ScheduleList'
 import P_PortScheduleDetails from './components/Port/P_PortScheduleDetails'
 import S_ShipScheduleDetails from './components/Ship/S_ShipScheduleDetails'
 import S_ScheduleList from './components/Ship/S_ScheduleList'
+import { useDispatch, useSelector } from 'react-redux'
+import { setOnlineUsers } from './components/redux/chatSlice'
+import { useEffect } from 'react'
+import { setSocket } from './components/redux/socketSlice'
+import { io } from 'socket.io-client'
 
 const browserRouter = createBrowserRouter([
   {
-  path: "/shiphome",
-  element: <ShipLayout />,
-  children: [
-    {
-      path: "",
-      element: <S_Home/>,
-    },
-    {
-      path: "profile",
-      element: <S_profile/>,
-    },
-    {
-      path: "shipList",
-      element: <S_ShipList/>,
-    },
-    {
-      path: "shipDetails",
-      element: <S_ShipDetails/>,
-    },
-    {
-      path: "ShipScheduleDetails",
-      element: <S_ShipScheduleDetails/>,
-    },
-    {
-      path: "ShipSchedule",
-      element: <S_ScheduleList/>,
-    }
-  ]},  
+    path: "/shiphome",
+    element: <ShipLayout />,
+    children: [
+      {
+        path: "",
+        element: <S_Home />,
+      },
+      {
+        path: "profile",
+        element: <S_profile />,
+      },
+      {
+        path: "shipList",
+        element: <S_ShipList />,
+      },
+      {
+        path: "shipDetails",
+        element: <S_ShipDetails />,
+      },
+      {
+        path: "ShipScheduleDetails",
+        element: <S_ShipScheduleDetails />,
+      },
+      {
+        path: "ShipSchedule",
+        element: <S_ScheduleList />,
+      }
+    ]
+  },
   {
     path: "/porthome",
     element: <PortLayout />,
@@ -56,40 +63,76 @@ const browserRouter = createBrowserRouter([
       },
       {
         path: "profile",
-        element: <P_profile/>,
+        element: <P_profile />,
       },
       {
         path: "portList",
-        element: <P_PortList/>,
+        element: <P_PortList />,
       },
       {
         path: "portDetails",
-        element: <P_PortDetails/>,
+        element: <P_PortDetails />,
       },
       {
         path: "portScheduleDetails",
-        element: <P_PortScheduleDetails/>,
+        element: <P_PortScheduleDetails />,
       },
       {
         path: "portSchedule",
-        element: <P_ScheduleList/>,
+        element: <P_ScheduleList />,
       }
-    ]},
+    ]
+  },
   {
     path: "/signup",
-      element: <Signup/>,
+    element: <Signup />,
   },
   {
     path: "/",
-      element: <Login/>,
+    element: <Login />,
   },
+  {
+    path: '/chat',
+    element: <ChatPage />
+  }
 ])
 
 function App() {
+  const { userinfo } = useSelector(store => store.user);
+  const { socket } = useSelector(store => store.socketio)
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (userinfo) {
+      const socketio = io(`http://localhost:8000`, {
+        query: {
+          userId: userinfo?._id
+        },
+        transports: ['websocket']
+      });
+      dispatch(setSocket(socketio));
 
+      socketio.on('getOnlineUsers', (onlineUsers) => {
+        dispatch(setOnlineUsers(onlineUsers));
+      })
+
+      socketio.on('notification', (notification) => {
+        console.log('Notification received:', notification); // Debugging
+        dispatch(setLikeNotification(notification));
+      });
+
+
+      return () => {
+        socketio.close();
+        dispatch(setSocket(null))
+      }
+    } else if (socket) {
+      socket?.close();
+      dispatch(setSocket(null))
+    }
+  }, [userinfo, dispatch])
   return (
     <>
-      <RouterProvider router={browserRouter}/>
+      <RouterProvider router={browserRouter} />
     </>
   )
 }

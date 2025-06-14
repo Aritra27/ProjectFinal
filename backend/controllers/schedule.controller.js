@@ -10,13 +10,14 @@ const createSchedule = async (req, res) => {
       arrival_time,
       departure_time,
       berthId,
-      portOwnerId
+      portOwnerId,
     } = req.body;
 
     console.log(req.body);
 
+    // Validate required fields
     if (
-      !portOwnerId||
+      !portOwnerId ||
       !portId ||
       !shipId ||
       !content_type ||
@@ -25,26 +26,20 @@ const createSchedule = async (req, res) => {
       !berthId
     ) {
       return res.status(401).json({
-        message: "some thing is missing",
-        success: true,
+        message: "Some fields are missing",
+        success: false,
       });
     }
 
+    // Function to calculate priority
     function calculatePriority(arrivalTime, contentType) {
-      // Get the current time
       const currentTime = new Date();
-
-      // Get the current time
       const parsedArrivalTime = new Date(arrivalTime);
-
-      // Calculate the time difference in hours
       const timeDiffInHours =
-        (parsedArrivalTime-currentTime ) / (1000 * 60 * 60);
-
-      // Ensure valid base priority
+        (parsedArrivalTime - currentTime) / (1000 * 60 * 60);
       let basePriority = timeDiffInHours * 0.1 || 0;
 
-      // Adjust for content type
+      // Adjust priority for content type
       if (contentType === "food") {
         basePriority += 1;
       } else if (contentType === "Material") {
@@ -53,10 +48,12 @@ const createSchedule = async (req, res) => {
 
       return basePriority;
     }
+
     const priority = calculatePriority(arrival_time, content_type);
 
+    // Create the schedule
     const schedule = await Schedule.create({
-      shipOwnerId:req.id,  
+      shipOwnerId: req.id,
       portOwnerId,
       portId,
       shipId,
@@ -66,13 +63,33 @@ const createSchedule = async (req, res) => {
       departure_time,
       berthId,
     });
+
+    // Push the schedule into the corresponding berth
+    const updatedBerth = await Berth.findByIdAndUpdate(
+      berthId, // Berth ID from the request body
+      { $push: { schedules: schedule._id } }, // Add schedule to `schedules` array
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedBerth) {
+      return res.status(404).json({
+        message: "Berth not found",
+        success: false,
+      });
+    }
+
     return res.status(200).json({
       schedule,
-      message: "schedule created successfully",
+      message: "Schedule created and added to berth successfully",
       success: true,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error creating schedule:", error);
+    return res.status(500).json({
+      message: "An error occurred while creating the schedule",
+      success: false,
+      error: error.message,
+    });
   }
 };
 
@@ -119,9 +136,19 @@ const freeSlots = async (req, res) => {
         if (lastDeparture < berthArrival) {
           const potentialStart = lastDeparture;
           const potentialEnd = new Date(potentialStart);
-          potentialEnd.setHours(potentialEnd.getHours() + stayDuration);
+          const durationInHours = Number(stayDuration); // Convert stayDuration to a number
+          if (isNaN(durationInHours)) {
+            throw new Error("Invalid stayDuration value. It must be a number.");
+          }
+
+          // Add stayDuration to potentialStart
+          potentialEnd.setHours(potentialEnd.getHours() + durationInHours);
+          console.log(
+            "potentialStart:" + potentialStart + "potentialEnd: " + potentialEnd
+          );
 
           if (potentialEnd <= berthArrival) {
+            console.log("check");
             const slotKey = `${potentialStart.toISOString()}-${potentialEnd.toISOString()}`;
             if (!availableSlots.has(slotKey)) {
               availableSlots.set(slotKey, {
@@ -168,44 +195,52 @@ const freeSlots = async (req, res) => {
   }
 };
 
-const portSchedules = async(req,res)=>{
+const portSchedules = async (req, res) => {
   const portOwnerId = req.id;
   try {
-    const schedules = await Schedule.find({portOwnerId});
-    if(!schedules){
+    const schedules = await Schedule.find({ portOwnerId })
+      .populate("shipOwnerId", "name")
+      .populate("shipId", "shipName")
+      .populate("berthId", "name");
+    if (!schedules) {
       return res.status(200).json({
-        success:true,
-        schedules:[]
-      })
+        success: true,
+        schedules: [],
+      });
     }
+    const result = schedules.map((schedule) => ({
+      ...schedule.toObject(), // Convert Mongoose document to plain JavaScript object
+      shipOwnerName: schedule.shipOwnerId?.name, // Add shipOwnerName
+      shipName: schedule.shipId?.shipName, // Add shipName
+      berthName: schedule.berthId?.name, // Add berthName
+    }));
+
     return res.status(200).json({
-      success:true,
-      schedules
-    })
-
+      success: true,
+      schedules: result,
+    });
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-}
+};
 
-const shipSchedules = async(req,res)=>{
+const shipSchedules = async (req, res) => {
   const shipOwnerId = req.id;
   try {
-    const schedules = await Schedule.find({shipOwnerId});
-    if(!schedules){
+    const schedules = await Schedule.find({ shipOwnerId });
+    if (!schedules) {
       return res.status(400).json({
-        success:false,
-      })
+        success: false,
+      });
     }
     return res.status(200).json({
-      success:true,
-      schedules
-    })
-
+      success: true,
+      schedules,
+    });
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-}
+};
 const arriveState = async (req, res) => {
   const { id } = req.params;
 
@@ -272,4 +307,11 @@ const dockedState = async (req, res) => {
   }
 };
 
-module.exports = { freeSlots, createSchedule,portSchedules,shipSchedules,arriveState,dockedState};
+module.exports = {
+  freeSlots,
+  createSchedule,
+  portSchedules,
+  shipSchedules,
+  arriveState,
+  dockedState,
+};

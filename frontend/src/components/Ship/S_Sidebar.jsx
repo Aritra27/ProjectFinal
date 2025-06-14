@@ -64,9 +64,8 @@ const S_Sidebar = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 z-10 h-screen w-[50%] md:w-[16%] border px-4 border-gray-300 bg-white md:translate-x-0 md:w-[16%] transform ${
-          menuOpen ? 'translate-x-0' : '-translate-x-full'
-        } transition-transform duration-300 ease-in-out`}
+        className={`fixed top-0 left-0 z-10 h-screen w-[50%] md:w-[16%] border px-4 border-gray-300 bg-white md:translate-x-0 md:w-[16%] transform ${menuOpen ? 'translate-x-0' : '-translate-x-full'
+          } transition-transform duration-300 ease-in-out`}
       >
         <div className="flex flex-col">
           <h1 className="font-bold my-5 text-center">CIRGO CONNECT</h1>
@@ -94,8 +93,8 @@ const S_Sidebar = () => {
       )}
 
       {/* Floating Message Icon */}
-      <div className="fixed bottom-10 right-10">
-        <MessageCircleCode className="bg-gray-200 rounded-full p-2 h-10 w-10" />
+      <div className='fixed bottom-10 right-10' onClick={() => navigate('/chat')}>
+        <MessageCircleCode className=' bg-gray-200 rounded-full p-2 h-10 w-10' />
       </div>
     </>
   );

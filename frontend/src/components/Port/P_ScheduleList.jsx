@@ -15,8 +15,12 @@ const P_ScheduleList = () => {
     ?.filter(schedule => schedule.state === 'arrived')
     .sort((a, b) => new Date(a.arrivalTime) - new Date(b.arrivalTime));
 
-  const otherSchedules = scheduleInfo
-    ?.filter(schedule => schedule.state !== 'arrived')
+  const scheduledSchedules = scheduleInfo
+    ?.filter(schedule => schedule.state === 'scheduled')
+    .sort((a, b) => new Date(a.arrivalTime) - new Date(b.arrivalTime));
+
+  const dockedSchedules = scheduleInfo
+    ?.filter(schedule => schedule.state === 'docked')
     .sort((a, b) => new Date(a.arrivalTime) - new Date(b.arrivalTime));
 
   return (
@@ -40,8 +44,16 @@ const P_ScheduleList = () => {
             <hr className="my-4 border-t-2" />
 
             {/* Other schedules */}
-            <h2 className="text-xl font-semibold py-4">Others</h2>
-            {otherSchedules?.map((schedule, index) => (
+            <h2 className="text-xl font-semibold py-4">scheduled</h2>
+            {scheduledSchedules?.map((schedule, index) => (
+              <P_Schedule key={`other-${index}`} schedule={schedule} />
+            ))}
+
+            <hr className="my-4 border-t-2" />
+
+            {/* Other schedules */}
+            <h2 className="text-xl font-semibold py-4">Docked</h2>
+            {dockedSchedules?.map((schedule, index) => (
               <P_Schedule key={`other-${index}`} schedule={schedule} />
             ))}
           </>

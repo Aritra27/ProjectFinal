@@ -97,7 +97,7 @@ const login = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
-    }
+    };
     return res
       .cookie("token", token, {
         httpOnly: true,
@@ -127,7 +127,7 @@ const logout = async (req, res) => {
   }
 };
 
-const editProfile = async(req,res)=>{
+const editProfile = async (req, res) => {
   try {
     const ownerId = req.id;
     const { name, email } = req.body;
@@ -138,20 +138,20 @@ const editProfile = async(req,res)=>{
         message: "user is not authenticated",
       });
     }
-    user.name=name
-    user.email = email
+    user.name = name;
+    user.email = email;
 
     user.save();
 
     return res.status(200).json({
       user,
       success: true,
-      message:"user data edited successfully"
+      message: "user data edited successfully",
     });
   } catch (error) {
     console.log(error);
   }
-}
+};
 
 const getProfile = async (req, res) => {
   try {
@@ -193,8 +193,53 @@ const deleteUser = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    
   }
 };
 
-module.exports = { register, login, logout, getProfile, deleteUser,editProfile };
+const getSuggestedusers = async (req, res) => {
+  try {
+    // Fetch current user
+    const currentUser = await User.findById(req.id);
+
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Determine target role based on current user role
+    const targetRole =
+      currentUser.role === "portManager" ? "shipOwner" : "portManager";
+
+    // Fetch users with opposite role, excluding the current user
+    const suggestedUsers = await User.find({
+      _id: { $ne: req.id },
+      role: targetRole,
+    }).select("-password");
+
+    if (!suggestedUsers || suggestedUsers.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No users found for the opposite role",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      users: suggestedUsers,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+module.exports = {
+  register,
+  login,
+  logout,
+  getProfile,
+  deleteUser,
+  editProfile,
+  getSuggestedusers
+};
