@@ -94,6 +94,10 @@ const browserRouter = createBrowserRouter([
   {
     path: '/chat',
     element: <ChatPage />
+  },
+  {
+    path: '*',
+    element: <h1>ERROR</h1>
   }
 ])
 

@@ -4,12 +4,14 @@ import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { resetUserState} from '../redux/userSlice'
+import { resetUserState } from '../redux/userSlice'
 import P_PortRegister from './P_PortRegister'
-import { resetPortState} from '../redux/portSlice'
-import { resetScheduleState} from '../redux/scheduleSlice'
+import { resetPortState } from '../redux/portSlice'
+import { resetScheduleState } from '../redux/scheduleSlice'
 import { resetChatState } from '../redux/chatSlice'
 import { resetSocketState } from '../redux/socketSlice'
+import logo from '../../assets/logo.png'
+
 
 const sidebarItems = [
     { icon: <Home />, text: "Home" },
@@ -49,7 +51,14 @@ const P_Sidebar = () => {
         <>
             <div className='fixed top-0 left-0 z-10 h-screen w-[16%]  border  px-4  border-gray-300'>
                 <div className='flex flex-col '>
-                    <h1 className='font-bold my-5 text-center'>LOGO</h1>
+                    <div>
+                        <img
+                            src={logo}
+                            alt="CargoConnect Logo"
+                            className="mx-auto my-5 w-32 h-auto"
+                        />
+                    </div>
+
                     {
                         sidebarItems.map((item, index) => {
                             return (
@@ -64,7 +73,7 @@ const P_Sidebar = () => {
                 </div>
                 <P_PortRegister open={portRegOpen} setOpen={setPortRegOpen} />
             </div>
-            <div className='fixed bottom-10 right-10'onClick={() => navigate('/chat')}>
+            <div className='fixed bottom-10 right-10' onClick={() => navigate('/chat')}>
                 <MessageCircleCode className=' bg-gray-200 rounded-full p-2 h-10 w-10' />
             </div>
         </>

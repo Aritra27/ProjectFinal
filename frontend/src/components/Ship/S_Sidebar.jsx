@@ -10,6 +10,9 @@ import { resetShipState, setSelectedShip, setShipinfo } from '../redux/shipSlice
 import { setPortinfo } from '../redux/portSlice';
 import S_Schedule from './S_Schedule';
 import { resetScheduleState } from '../redux/scheduleSlice';
+import { resetSocketState } from '../redux/socketSlice'
+import logo from '../../assets/logo.png'
+
 
 const sidebarItems = [
   { icon: <Home />, text: 'Home' },
@@ -68,7 +71,13 @@ const S_Sidebar = () => {
           } transition-transform duration-300 ease-in-out`}
       >
         <div className="flex flex-col">
-          <h1 className="font-bold my-5 text-center">CIRGO CONNECT</h1>
+          <div>
+            <img
+              src={logo}
+              alt="CargoConnect Logo"
+              className="mx-auto my-5 w-32 h-auto"
+            />
+          </div>
           {sidebarItems.map((item, index) => (
             <div
               key={index}

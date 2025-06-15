@@ -1,6 +1,10 @@
+const OTP = require("../models/otp.model");
 const Port = require("../models/port");
 const Ship = require("../models/ship");
 const User = require("../models/user");
+const otpTemplate = require("../Template/mailtemplate");
+const mailSender = require("../utils/mailer");
+const otpGenerator = require('otp-generator')
 
 const register = async (req, res) => {
   try {
@@ -234,6 +238,80 @@ const getSuggestedusers = async (req, res) => {
   }
 };
 
+const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const validOtp = await OTP.findOne({ email, otp });
+
+    if (!validOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP",
+      });
+    }
+
+    // delete OTP after successful verification
+    await OTP.deleteOne({ _id: validOtp._id });
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+    });
+  } catch (err) {
+    console.log("Error while verifying OTP", err);
+    res.status(500).json({
+      success: false,
+      message: "OTP verification failed",
+    });
+  }
+};
+
+const sendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Check if user already exists
+    const checkUserPresent = await User.findOne({ email });
+    if (checkUserPresent) {
+      return res.status(401).json({
+        success: false,
+        message: "User is Already Registered",
+      });
+    }
+
+    // Generate OTP
+    const otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      lowerCaseAlphabets: false,
+      specialChars: false,
+    });
+
+    // Format name from email
+    const name = email.split("@")[0].replace(/[0-9]/g, " ").trim();
+
+    // ✅ SEND OTP EMAIL HERE
+    await mailSender(
+      email,
+      "OTP Verification Email",
+      otpTemplate(otp, name) // This should return some styled HTML like `<h1>Your OTP is ${otp}</h1>`
+    );
+
+    // Save OTP in DB
+    await OTP.create({ email, otp });
+
+    res.status(200).json({
+      success: true,
+      message: "OTP sent successfully",
+    });
+  } catch (error) {
+    console.error("Error while sending OTP:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -241,5 +319,7 @@ module.exports = {
   getProfile,
   deleteUser,
   editProfile,
-  getSuggestedusers
+  getSuggestedusers,
+  verifyOTP,
+  sendOTP
 };
