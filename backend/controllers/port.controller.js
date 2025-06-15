@@ -1,6 +1,7 @@
 const Berth = require("../models/berth");
 const Port = require("../models/port");
 const User = require("../models/user");
+const Schedule = require("../models/schedule");
 
 const registerPort = async (req, res) => {
   try {
@@ -198,4 +199,44 @@ const editPort = async (req, res) => {
   }
 };
 
-module.exports = { registerPort, getPortDetails, editPort,allUserPort,getPortListCountrywise };
+// GET /api/port-dashboard/:ownerId
+
+const portdashboard= async (req, res) => {
+  try {
+    const ownerId = req.params.id;
+
+    const port = await Port.findOne({ ownerId }).populate("berths");
+    const schedules = await Schedule.find({ portOwnerId: ownerId });
+
+    const upcoming = schedules
+      .filter(s => new Date(s.arrival_time) > new Date())
+      .sort((a, b) => new Date(a.arrival_time) - new Date(b.arrival_time))
+      .slice(0, 5);
+
+    const trafficData = schedules.reduce((acc, sch) => {
+      const date = new Date(sch.arrival_time).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+      });
+
+      const entry = acc.find((item) => item.date === date);
+      if (entry) entry.ships++;
+      else acc.push({ date, ships: 1 });
+
+      return acc;
+    }, []);
+
+    res.json({
+      totalShips: schedules.length,
+      upcomingArrivals: upcoming,
+      dockCount: port.berths.length,
+      trafficData,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Dashboard fetch failed");
+  }
+};
+
+
+module.exports = { registerPort, getPortDetails, editPort,allUserPort,getPortListCountrywise,portdashboard };

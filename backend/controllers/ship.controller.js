@@ -1,6 +1,8 @@
 const Ship = require("../models/ship");
 const User = require("../models/user");
+const Port = require("../models/port");
 const axios = require("axios");
+const Schedule = require("../models/schedule");
 
 const registerShip = async (req, res) => {
   try {
@@ -131,4 +133,40 @@ const deleteShip = async (req, res) => {
     console.log(error);
   }
 };
-module.exports = { registerShip, getShipDetails, deleteShip, allUserShip };
+
+
+const shipDashboard = async (req, res) => {
+  try {
+    const ownerId = req.params.id;
+
+    const ships = await Ship.find({ ownerId });
+    const schedules = await Schedule.find({ shipOwnerId: ownerId });
+
+    const upcomingTrips = schedules.filter(s => new Date(s.arrival_time) > new Date());
+
+    // Group by port name for chart
+    const tripsPerPort = {};
+    for (const s of schedules) {
+      const portName = s.portId; // If portId is name. If it's ObjectId, populate it.
+      tripsPerPort[portName] = (tripsPerPort[portName] || 0) + 1;
+    }
+
+    res.json({
+      totalShips: ships.length,
+      scheduledTrips: schedules.length,
+      upcomingTrips: upcomingTrips.length,
+      registeredPorts: Object.keys(tripsPerPort).length,
+      tripsPerPort: Object.entries(tripsPerPort).map(([port, trips]) => ({ port, trips })),
+      upcomingList: upcomingTrips.slice(0, 5).map(s => ({
+        ship: ships.find(ship => ship._id.equals(s.shipId))?.shipName || 'Unknown',
+        port: s.portId,
+        arrival: s.arrival_time,
+      }))
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Failed to fetch ship dashboard");
+  }
+};
+
+module.exports = { registerShip, getShipDetails, deleteShip, allUserShip ,shipDashboard};
