@@ -65,7 +65,7 @@ const allUserShip = async (req, res) => {
         success: true,
       });
     }
-    console.log(ships)
+    console.log(ships);
     return res.status(200).json({
       ships: ships,
       success: true,
@@ -95,45 +95,46 @@ const getShipDetails = async (req, res) => {
     console.log(error);
   }
 };
+
 const deleteShip = async (req, res) => {
   try {
-    const ownerId = req.id;
+    const ownerId = req.params.ownerid;
     const shipId = req.params.id;
+
     const shipExist = await Ship.findById(shipId);
     if (!shipExist) {
-      return res.status(401).json({
-        message: "ship not exist",
-        success: false,
-      });
-    }
-    console.log(shipExist.ownerId, ownerId);
-    if (shipExist.ownerId.toString() === ownerId) {
-      const user = await User.findById(ownerId);
-      if (user) {
-        await Ship.deleteOne({ _id: shipId });
-        user.ships.pull(shipId);
-        await user.save();
-        return res.status(201).json({
-          message: "ship deleted successfully",
-          success: true,
-        });
-      } else {
-        return res.status(401).json({
-          message: "error to fetch user",
-          success: false,
-        });
-      }
-    } else {
       return res.status(404).json({
-        message: "you are not authorized to delete this",
+        message: "Ship does not exist",
         success: false,
       });
     }
+
+    const user = await User.findById(ownerId);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    // ✅ Delete all schedules for this ship
+    await Schedule.deleteMany({ shipId });
+
+    // ✅ Delete the ship
+    await Ship.deleteOne({ _id: shipId });
+
+    return res.status(200).json({
+      message: "Ship and related schedules deleted successfully",
+      success: true,
+    });
   } catch (error) {
-    console.log(error);
+    console.error("Error deleting ship:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
   }
 };
-
 
 const shipDashboard = async (req, res) => {
   try {
@@ -142,7 +143,9 @@ const shipDashboard = async (req, res) => {
     const ships = await Ship.find({ ownerId });
     const schedules = await Schedule.find({ shipOwnerId: ownerId });
 
-    const upcomingTrips = schedules.filter(s => new Date(s.arrival_time) > new Date());
+    const upcomingTrips = schedules.filter(
+      (s) => new Date(s.arrival_time) > new Date()
+    );
 
     // Group by port name for chart
     const tripsPerPort = {};
@@ -156,12 +159,17 @@ const shipDashboard = async (req, res) => {
       scheduledTrips: schedules.length,
       upcomingTrips: upcomingTrips.length,
       registeredPorts: Object.keys(tripsPerPort).length,
-      tripsPerPort: Object.entries(tripsPerPort).map(([port, trips]) => ({ port, trips })),
-      upcomingList: upcomingTrips.slice(0, 5).map(s => ({
-        ship: ships.find(ship => ship._id.equals(s.shipId))?.shipName || 'Unknown',
+      tripsPerPort: Object.entries(tripsPerPort).map(([port, trips]) => ({
+        port,
+        trips,
+      })),
+      upcomingList: upcomingTrips.slice(0, 5).map((s) => ({
+        ship:
+          ships.find((ship) => ship._id.equals(s.shipId))?.shipName ||
+          "Unknown",
         port: s.portId,
         arrival: s.arrival_time,
-      }))
+      })),
     });
   } catch (err) {
     console.error(err);
@@ -169,4 +177,10 @@ const shipDashboard = async (req, res) => {
   }
 };
 
-module.exports = { registerShip, getShipDetails, deleteShip, allUserShip ,shipDashboard};
+module.exports = {
+  registerShip,
+  getShipDetails,
+  deleteShip,
+  allUserShip,
+  shipDashboard,
+};

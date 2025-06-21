@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Await, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { setSelectedSchedule, updateScheduleState } from '../redux/scheduleSlice';
 import { Button } from '../ui/button';
 import axios from 'axios';
@@ -8,114 +8,118 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
 const P_Schedule = ({ schedule }) => {
-  const [click, setClick] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loadingAction, setLoadingAction] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const arrivalDate = new Date(schedule?.arrival_time);
   const departureDate = new Date(schedule?.departure_time);
 
-  // Format the dates and times as desired (e.g., usingtoLocaleString)
   const formattedArrivalTime = arrivalDate.toLocaleString('en-US', {
     year: 'numeric',
-    month: 'long', // Use 'short' for abbreviated month names or 'numeric' for numbers
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: true, // Use false for 24-hour format
-  });
-
-  const formattedDepartureTime = departureDate.toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'long', // Use 'short' for abbreviated month names or 'numeric' for numbers
+    month: 'long',
     day: 'numeric',
     hour: 'numeric',
     minute: 'numeric',
     hour12: true,
   });
-  const ScheduleDetailsManagement = (schedule) => {
+
+  const formattedDepartureTime = departureDate.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+  });
+
+  const handleViewDetails = () => {
     dispatch(setSelectedSchedule(schedule));
-    navigate("/porthome/portScheduleDetails")
-  }
-  const scheduleButtonClick = async (e) => {
-    e.stopPropagation(); // Prevent event bubblings
-    setLoading(true);
+    navigate("/porthome/portScheduleDetails");
+  };
+
+  const handleStateChange = async (e, newState) => {
+    e.stopPropagation();
+    setLoadingAction(newState);
 
     try {
-      const res = await axios.put(`http://localhost:8000/api/v1/schedule/Arrive/${schedule._id}`);
-      console.log(res)
-      dispatch(updateScheduleState({ id: schedule._id, state: "arrived" }));
+      const res = await axios.put(
+        `http://localhost:8000/api/v1/schedule/state/${schedule._id}/${newState}`,
+        {},                             // No request body, so pass empty object
+        { withCredentials: true }      // 👈 IMPORTANT: sends the JWT cookie
+      );
+      dispatch(updateScheduleState({ id: schedule._id, state: newState }));
       toast.success(res.data.message);
     } catch (error) {
-      console.error("Error updating schedule state:", error);
+      console.error("Schedule state update failed:", error);
       toast.error("Failed to update schedule state.");
     } finally {
-      setLoading(false);
+      setLoadingAction('');
     }
   };
 
-  const ArriveButtonClick = async (e) => {
-    e.stopPropagation(); // Prevent event bubblings
-    setLoading(true);
-
-    try {
-      const res = await axios.put(`http://localhost:8000/api/v1/schedule/Docked/${schedule._id}`);
-      console.log(res)
-      dispatch(updateScheduleState({ id: schedule._id, state: "docked" }));
-      toast.success(res.data.message);
-    } catch (error) {
-      console.error("Error updating schedule state:", error);
-      toast.error("Failed to update schedule state.");
-    } finally {
-      setLoading(false);
-    }
-  };
   return (
-    <div className="bg-white shadow-lg rounded-lg p-4 mb-4 flex  flex-col   hover:bg-gray-600 cursor-pointer" onClick={() => ScheduleDetailsManagement(schedule)}>
-      {/* Left Section */}
-      <div className='flex justify-between items-center'>
+    <div
+      className="bg-white shadow-lg rounded-lg p-4 mb-4 hover:bg-gray-100 cursor-pointer"
+      onClick={handleViewDetails}
+    >
+      <div className="flex justify-between items-center">
+        {/* Left: Ship Info */}
         <div className="flex flex-col">
-          <span className="font-bold text-lg">Ship Id: {schedule?.shipId.shipName}</span>
+          <span className="font-bold text-lg">Ship: {schedule?.shipId?.shipName}</span>
           <span className="text-sm text-gray-500">Priority: {schedule?.priority}</span>
-          <span className="text-sm text-gray-500">Berth Id: {schedule?.berthId.name}</span>
+          <span className="text-sm text-gray-500">Berth: {schedule?.berthId?.name}</span>
         </div>
 
-        {/* Right Section */}
+        {/* Middle: Time Info */}
         <div className="flex flex-col text-sm font-medium text-blue-600">
-          <span>Arrival Time: {formattedArrivalTime} hrs</span>
-          <span>Departure Time: {formattedDepartureTime} hrs</span>
+          <span>Arrival: {formattedArrivalTime}</span>
+          <span>Departure: {formattedDepartureTime}</span>
         </div>
-        {schedule.state == "scheduled" &&
-          <div className="flex flex-col text-sm font-medium text-blue-600">
-            <Button onClick={scheduleButtonClick} disabled={loading}>
-              {loading ? <Loader2 className='animate-spin' /> : "Arrive"}
+
+        {/* Right: Action Buttons */}
+        <div className="flex flex-col space-y-2">
+          {schedule.state === "scheduled" && (
+            <Button
+              onClick={(e) => handleStateChange(e, "arrived")}
+              disabled={loadingAction === "arrived"}
+            >
+              {loadingAction === "arrived" ? <Loader2 className="animate-spin" /> : "Arrive"}
             </Button>
-          </div>
-        }
-        {schedule.state == "arrived" &&
-          <div className="flex  flex-col text-sm font-medium justify-evenly text-blue-600 ">
-            <Button onClick={ArriveButtonClick} disabled={loading}>
-              {loading ? <Loader2 className='animate-spin' /> : "Dock"}
+          )}
+
+          {schedule.state === "arrived" && (
+            <Button
+              onClick={(e) => handleStateChange(e, "docked")}
+              disabled={loadingAction === "docked"}
+            >
+              {loadingAction === "docked" ? <Loader2 className="animate-spin" /> : "Dock"}
             </Button>
-          </div>
-        }
-        {(schedule.state == "scheduled" || schedule.state == "arrived") &&
-          <div className="flex flex-col text-sm font-medium text-blue-600">
-            <Button onClick={ArriveButtonClick} disabled={loading}>
-              {loading ? <Loader2 className='animate-spin' /> : "cancel"}
+          )}
+
+          {["scheduled", "arrived"].includes(schedule.state) && (
+            <Button
+              onClick={(e) => handleStateChange(e, "cancel")}
+              className="bg-red-500 hover:bg-red-600 text-white"
+              disabled={loadingAction === "cancel"}
+            >
+              {loadingAction === "cancel" ? <Loader2 className="animate-spin" /> : "Cancel"}
             </Button>
-          </div>
-        }
-        {schedule.state == "docked" &&
-          <div className="flex flex-col text-sm font-medium text-blue-600">
-            <Button onClick={ArriveButtonClick} disabled={loading}>
-              {loading ? <Loader2 className='animate-spin' /> : "leave"}
+          )}
+
+          {schedule.state === "docked" && (
+            <Button
+              onClick={(e) => handleStateChange(e, "leave")}
+              className="bg-green-600 hover:bg-green-700 text-white"
+              disabled={loadingAction === "leave"}
+            >
+              {loadingAction === "leave" ? <Loader2 className="animate-spin" /> : "Leave"}
             </Button>
-          </div>
-        }
+          )}
+        </div>
       </div>
     </div>
   );
-}
+};
 
 export default P_Schedule;

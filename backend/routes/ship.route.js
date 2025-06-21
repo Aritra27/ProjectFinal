@@ -9,6 +9,6 @@ router.route("/getAllShip").get(isShipOwner,allUserShip);
 
 router.route("/:id/ship_details").get(getShipDetails);
 router.route('/shipdashboard/:id').get(shipDashboard);
-router.route("/:id/deleteShip").delete(isShipOwner,deleteShip);
+router.route("/:ownerid/:id/deleteShip").delete(deleteShip);
 
 module.exports=router;

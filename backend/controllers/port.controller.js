@@ -3,6 +3,7 @@ const Port = require("../models/port");
 const User = require("../models/user");
 const Schedule = require("../models/schedule");
 
+
 const registerPort = async (req, res) => {
   try {
     const { portId, max_berth, timeTakenPerContent, cost_per_time, country  } = req.body;
@@ -199,6 +200,59 @@ const editPort = async (req, res) => {
   }
 };
 
+
+
+
+const deletePort = async (req, res) => {
+  try {
+    const portId = req.params.portId;
+
+    // Check if port exists
+    const port = await Port.findById(portId);
+    if (!port) {
+      return res.status(404).json({ success: false, message: "Port not found" });
+    }
+
+    // Find all berths under the port
+    const berths = await Berth.find({ portId: portId });
+
+    // Check if any berth has scheduled ships
+    for (const berth of berths) {
+      const activeSchedules = await Schedule.find({
+        berthId: berth._id,
+        state: { $in: ["scheduled", "arrived", "docked"] }
+      });
+
+      if (activeSchedules.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot delete port. Active ship schedule(s) found in berth ${berth.name}`,
+        });
+      }
+    }
+
+    // Delete all berths for this port
+    await Berth.deleteMany({ portId: portId });
+
+    // Delete the port
+    await Port.findByIdAndDelete(portId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Port and all its berths deleted successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while deleting port",
+    });
+  }
+};
+
+module.exports = deletePort;
+
 // GET /api/port-dashboard/:ownerId
 
 const portdashboard= async (req, res) => {
@@ -239,4 +293,4 @@ const portdashboard= async (req, res) => {
 };
 
 
-module.exports = { registerPort, getPortDetails, editPort,allUserPort,getPortListCountrywise,portdashboard };
+module.exports = { registerPort, getPortDetails, editPort,deletePort,allUserPort,getPortListCountrywise,portdashboard };

@@ -241,67 +241,44 @@ const shipSchedules = async (req, res) => {
     console.log(error);
   }
 };
-const arriveState = async (req, res) => {
-  const { id } = req.params;
+
+const validStates = ["scheduled", "arrived", "docked", "leave", "cancel"];
+
+const updateScheduleState = async (req, res) => {
+  const { id, newState } = req.params;
 
   try {
-    // Find the schedule by ID
-    const schedule = await Schedule.findById(id);
-
-    if (!schedule) {
-      return res.status(404).json({
+    // Validate state
+    if (!validStates.includes(newState)) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to find schedule",
+        message: `Invalid state: '${newState}'`,
       });
     }
 
-    // Update the state to "arrived"
-    schedule.state = "arrived";
+    // Find the schedule
+    const schedule = await Schedule.findById(id);
+    if (!schedule) {
+      return res.status(404).json({
+        success: false,
+        message: "Schedule not found",
+      });
+    }
+
+    // Update and save
+    schedule.state = newState;
     await schedule.save();
 
     return res.status(200).json({
       success: true,
-      message: "Schedule state successfully updated to 'arrived'",
+      message: `Schedule state successfully updated to '${newState}'`,
       schedule,
     });
   } catch (error) {
     console.error("Error updating schedule state:", error);
     return res.status(500).json({
       success: false,
-      message: "An error occurred while updating the schedule state",
-      error: error.message,
-    });
-  }
-};
-
-const dockedState = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    // Find the schedule by ID
-    const schedule = await Schedule.findById(id);
-
-    if (!schedule) {
-      return res.status(404).json({
-        success: false,
-        message: "Failed to find schedule",
-      });
-    }
-
-    // Update the state to "arrived"
-    schedule.state = "docked";
-    await schedule.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Schedule state successfully updated to 'docked'",
-      schedule,
-    });
-  } catch (error) {
-    console.error("Error updating schedule state:", error);
-    return res.status(500).json({
-      success: false,
-      message: "An error occurred while updating the schedule state",
+      message: "An error occurred while updating schedule state",
       error: error.message,
     });
   }
@@ -312,6 +289,5 @@ module.exports = {
   createSchedule,
   portSchedules,
   shipSchedules,
-  arriveState,
-  dockedState,
+  updateScheduleState,
 };
