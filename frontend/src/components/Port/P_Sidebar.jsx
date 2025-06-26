@@ -17,7 +17,6 @@ const sidebarItems = [
     { icon: <Home />, text: "Home" },
     { icon: <Anchor />, text: "Port Register" },
     { icon: <List />, text: "Portlist" },
-    { icon: <CalendarPlus />, text: "Schedule" },
     { icon: <CalendarFold />, text: "List of Schedule" },
     { icon: <CircleUserRound />, text: "profile" },
     { icon: <LogOut />, text: "logout" },

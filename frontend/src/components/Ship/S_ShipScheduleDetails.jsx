@@ -78,18 +78,7 @@ const S_ShipScheduleDetails = () => {
                   <span>{selectedSchedule?.berthId || "N/A"}</span>
                 </div>
                 <div className="flex  items-end justify-between space-y-4">
-                <Button
-                  variant="outline"
-                  className="bg-blue-500 text-white hover:bg-blue-600 w-24"
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  className="bg-red-500 text-white hover:bg-red-600 w-24"
-                >
-                  Delete
-                </Button>
+
               </div>
               </div>
               {/* Buttons */}

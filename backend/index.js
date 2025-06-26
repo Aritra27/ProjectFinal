@@ -47,7 +47,7 @@ const PORT = process.env.PORT;
 
 
 db().then(
-  server.listen(PORT, () => {
+  server.listen(PORT,"0.0.0.0", () => {
     console.log(`app is listening on ${PORT}`);
   })
 );
